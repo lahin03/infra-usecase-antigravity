@@ -8,6 +8,12 @@ variable "secret_id" {
   type        = string
 }
 
+variable "secret_value" {
+  description = "The actual secret value to store"
+  type        = string
+  sensitive   = true
+}
+
 resource "google_secret_manager_secret" "secret" {
   secret_id = var.secret_id
   project   = var.project_id
@@ -19,11 +25,7 @@ resource "google_secret_manager_secret" "secret" {
 
 resource "google_secret_manager_secret_version" "secret_version" {
   secret      = google_secret_manager_secret.secret.id
-  secret_data = "placeholder-value-to-be-updated-manually"
-  
-  lifecycle {
-    ignore_changes = [secret_data]
-  }
+  secret_data = var.secret_value
 }
 
 output "secret_id" {

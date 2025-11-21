@@ -7,7 +7,7 @@ provider "google" {
 module "iam" {
   source     = "../modules/iam"
   project_id = var.project_id
-  
+
   service_accounts = {
     "${var.resource_prefix}-client-app-sa"       = "SA for Client App"
     "${var.resource_prefix}-pubsub-publisher-sa" = "SA for Backend Function"
@@ -47,9 +47,10 @@ module "firestore" {
 
 # --- Secret Manager ---
 module "secrets" {
-  source     = "../modules/secret_manager"
-  project_id = var.project_id
-  secret_id  = "${var.resource_prefix}-sendgrid-api-key"
+  source       = "../modules/secret_manager"
+  project_id   = var.project_id
+  secret_id    = "${var.resource_prefix}-sendgrid-api-key"
+  secret_value = var.sendgrid_api_key
 }
 
 # --- Cloud Storage ---
@@ -79,7 +80,7 @@ module "pubsub_publisher" {
   entry_point           = "main"
   service_account_email = module.iam.emails["${var.resource_prefix}-pubsub-publisher-sa"]
   trigger_http          = true
-  
+
   environment_variables = {
     INCIDENT_TOPIC = module.pubsub.topic_names["incident"]
     TASK_TOPIC     = module.pubsub.topic_names["task"]
@@ -112,6 +113,8 @@ module "incident_handler" {
       version    = "latest"
     }
   ]
+
+  depends_on = [module.secrets]
 }
 
 # 3. Task Handler
@@ -157,6 +160,8 @@ module "daily_report" {
       version    = "latest"
     }
   ]
+
+  depends_on = [module.secrets]
 }
 
 # --- Cloud Run (Client App) ---
