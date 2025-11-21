@@ -1,0 +1,6 @@
+google-cloud-pubsub
+google-cloud-firestore
+google-cloud-storage
+google-cloud-aiplatform
+functions-framework
+requests
