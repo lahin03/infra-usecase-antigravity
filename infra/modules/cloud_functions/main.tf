@@ -45,9 +45,9 @@ variable "trigger_http" {
 variable "event_trigger" {
   description = "Event trigger configuration"
   type = object({
-    event_type    = string
-    pubsub_topic  = string
-    retry_policy  = string
+    event_type   = string
+    pubsub_topic = string
+    retry_policy = string
   })
   default = null
 }
@@ -62,38 +62,6 @@ resource "google_storage_bucket_object" "archive" {
   name   = "${var.function_name}-${data.archive_file.source.output_md5}.zip"
   bucket = var.bucket_name
   source = data.archive_file.source.output_path
-}
-
-resource "google_cloudfunctions2_function" "function" {
-  name        = var.function_name
-  location    = var.region
-  description = "Managed by Terraform"
-
-  build_config {
-    runtime     = "python310"
-    entry_point = var.entry_point
-    source {
-      storage_source {
-        bucket = var.bucket_name
-        object = google_storage_bucket_object.archive.name
-      }
-    }
-  }
-
-variable "service_account_email" {
-  description = "The service account to run the function as"
-  type        = string
-}
-
-variable "secret_environment_variables" {
-  description = "List of secret environment variables"
-  type = list(object({
-    key        = string
-    project_id = string
-    secret     = string
-    version    = string
-  }))
-  default = []
 }
 
 variable "service_account_email" {
@@ -129,12 +97,12 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   service_config {
-    max_instance_count = 1
-    available_memory   = "256M"
-    timeout_seconds    = 60
+    max_instance_count    = 1
+    available_memory      = "256M"
+    timeout_seconds       = 60
     environment_variables = var.environment_variables
     service_account_email = var.service_account_email
-    
+
     dynamic "secret_environment_variables" {
       for_each = var.secret_environment_variables
       content {
@@ -150,9 +118,9 @@ resource "google_cloudfunctions2_function" "function" {
   dynamic "event_trigger" {
     for_each = var.event_trigger != null ? [var.event_trigger] : []
     content {
-      event_type    = event_trigger.value.event_type
-      pubsub_topic  = event_trigger.value.pubsub_topic
-      retry_policy  = event_trigger.value.retry_policy
+      event_type   = event_trigger.value.event_type
+      pubsub_topic = event_trigger.value.pubsub_topic
+      retry_policy = event_trigger.value.retry_policy
     }
   }
 }
